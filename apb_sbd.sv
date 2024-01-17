@@ -1,0 +1,56 @@
+`uvm_analysis_imp_decl(_wr)
+`uvm_analysis_imp_decl(_rd)
+class apb_sbd extends uvm_scoreboard;
+`uvm_component_utils(apb_sbd)
+`NEW_COMP
+uvm_analysis_imp_wr#(apb_tx,apb_sbd) imp_sbd1;
+uvm_analysis_imp_rd#(apb_tx,apb_sbd) imp_sbd2;
+apb_tx wr_Q[$];
+apb_tx rd_Q[$];
+apb_tx tx,wtx,rtx;
+static int num_matches;
+static int num_mismatches;
+
+
+		function void build_phase(uvm_phase phase);
+		super.build_phase(phase);
+		imp_sbd1=new("imp_sbd1",this);
+		imp_sbd2=new("imp_sbd2",this);
+		endfunction
+
+		function void write_wr(apb_tx tx);
+			`uvm_info("APB_SBD","APB_SBD_TX",UVM_LOW);
+			$display("########################################################################");
+			wr_Q.push_back(tx);
+			$display("wr_Q=%p",wr_Q);
+			$display("########################################################################");
+		endfunction
+
+        function void write_rd(apb_tx tx);
+			`uvm_info("APB_SBD","APB_SBD_TX",UVM_LOW);
+			$display("***********************************************************************");
+			rd_Q.push_back(tx);
+			$display("***********************************************************************");
+		endfunction
+
+
+
+
+		task run_phase(uvm_phase phase);
+			forever begin
+					wait(wr_Q.size()>0 && rd_Q.size()>0);
+							wtx=wr_Q.pop_front();
+							rtx=rd_Q.pop_front();
+							if(wtx==rtx)begin
+								num_matches++;
+								$display("********* MATCHING **********");
+							end
+							else begin
+								$display("**********NOT MATCHING **********");
+							num_mismatches++;
+							end
+					end
+
+		endtask
+
+endclass
